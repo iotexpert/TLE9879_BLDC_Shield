@@ -7,15 +7,15 @@ This is a driver library to interface with an Infineon TLE9879 BLDC Shield using
 
 To use the library:
 
-1. Include the header file **ew\_tle9879\_system.h**.
+1. Include the header file **tle9879\_system.h**.
 
-2. Create a pointer of type **ew\_tle9879\_sys\_t** use as a handle to the object.
+2. Create a pointer of type **tle9879\_sys\_t** use as a handle to the object.
 
-2. Call the function **ew\_tle9879sys\_init** to initialize the interface. The arguments are:
+2. Call the function **tle9879sys\_init** to initialize the interface. The arguments are:
 
     | Argument | Description | 
     | -------- | ----------- |
-    | ew_tle9879_sys_t *obj  | Poiter to the TLE9879 sheild object. |
+    | tle9879_sys_t *obj  | Poiter to the TLE9879 sheild object. |
     | cyhal_gpio_t mosi      | SPI MOSI pin. |
     | cyhal_gpio_t miso      | SPI MISO pin. |
     | cyhal_gpio_t sclk      | SPI SCLK pin. |
@@ -28,28 +28,28 @@ To use the library:
 
         Note: The first shield connected uses the ss2 pin.
 
-3. Call the function **ew\_tle9879sys\_setMode** to select FOC mode. The arguments are:
+3. Call the function **tle9879sys\_setMode** to select FOC mode. The arguments are:
 
     | Argument | Description | 
     | -------- | ----------- |
-    | ew_tle9879_sys_t *obj  |    Poiter to the TLE9879 sheild object. |
+    | tle9879_sys_t *obj  |    Poiter to the TLE9879 sheild object. |
     | uint8_t mode           |    Mode: (MODECONTROL, BOOTLOADER, BEMF, HALL, FOC, GETCURRENTMODE) |
     | uint8_t boardnr        |    Board number |
     | bool fastMode          |    |
 
-4. Call the function **ew\_tle9879sys\_setMotorSpeed**. The arguments are:
+4. Call the function **tle9879sys\_setMotorSpeed**. The arguments are:
 
     | Argument | Description | 
     | -------- | ----------- |
-    | ew_tle9879_sys_t *obj  |   Poiter to the TLE9879 sheild object. |
+    | tle9879_sys_t *obj  |   Poiter to the TLE9879 sheild object. |
     | float motorspeed       |   Motor speed in RPM. |
     v uint8_t boardnr        |   Board number |
 
-5. Call the function **ew\_tle9879sys\_setMotorMode** to turn the motor on or off. The arguments are:
+5. Call the function **tle9879sys\_setMotorMode** to turn the motor on or off. The arguments are:
 
     | Argument | Description | 
     | -------- | ----------- |
-    | ew_tle9879_sys_t *obj  |   Poiter to the TLE9879 sheild object. |
+    | tle9879_sys_t *obj  |   Poiter to the TLE9879 sheild object. |
     | uint8_t mode           |   Mode (START_MOTOR, STOP_MOTOR, MOTORCONTROL) |
     | uint8_t boardnr        |   Board number |
 
@@ -57,11 +57,11 @@ To use the library:
 
 The folowing code will initialize the driver, set the speed to 2000 RPM, start the motor, and then stop it after 1 second.
 
-    #include "ew_tle9879_system.h"
+    #include "tle9879_system.h"
         
-    ew_tle9879_sys_t tle9879_sys;
+    tle9879_sys_t tle9879_sys;
 
-    ew_tle9879sys_init(&tle9879_sys, 
+    tle9879sys_init(&tle9879_sys, 
         CYBSP_D11, 
         CYBSP_D12, 
         CYBSP_D13, 
@@ -72,12 +72,12 @@ The folowing code will initialize the driver, set the speed to 2000 RPM, start t
         CYBSP_D7, 
         &numboards);
 
-    ew_tle9879sys_setMode(&tle9879_sys, FOC, 1, false);
+    tle9879sys_setMode(&tle9879_sys, FOC, 1, false);
 
-    ew_tle9879sys_setMotorSpeed(&tle9879_sys, 2000.0, 1);
+    tle9879sys_setMotorSpeed(&tle9879_sys, 2000.0, 1);
 
-    ew_tle9879sys_setMotorMode(&tle9879_sys, START_MOTOR, 1);
+    tle9879sys_setMotorMode(&tle9879_sys, START_MOTOR, 1);
 
     cyhal_system_delay_ms(1000);
 
-    ew_tle9879sys_setMotorMode(&tle9879_sys, STOP_MOTOR, 1);
+    tle9879sys_setMotorMode(&tle9879_sys, STOP_MOTOR, 1);

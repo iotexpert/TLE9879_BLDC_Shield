@@ -1,19 +1,19 @@
 #include "cyhal.h"
-#include "ew_tle9879_system.h"
-#include "ew_tle9879_board_driver.h"
+#include "tle9879_system.h"
+#include "tle9879_board_driver.h"
 
 static cyhal_spi_t tle9879_spi_obj;
-static ew_tle9879_board_t tle9879_boardA;
-static ew_tle9879_board_t tle9879_boardB;
-static ew_tle9879_board_t tle9879_boardC;
-static ew_tle9879_board_t tle9879_boardD;
+static tle9879_board_t tle9879_boardA;
+static tle9879_board_t tle9879_boardB;
+static tle9879_board_t tle9879_boardC;
+static tle9879_board_t tle9879_boardD;
 
 //private board communications functions
 
 
 //private helper functions
 
-void ew_tle9879sys_sendMessageToAll(uint16_t data)
+void tle9879sys_sendMessageToAll(uint16_t data)
 {
 	uint8_t txdata[2];
 	uint8_t rxdata[2];
@@ -43,12 +43,12 @@ void ew_tle9879sys_sendMessageToAll(uint16_t data)
 
 
 //Public facing functions
-void ew_tle9879sys_setMode(ew_tle9879_sys_t *obj, uint8_t mode, uint8_t boardnr, bool fastMode)
+void tle9879sys_setMode(tle9879_sys_t *obj, uint8_t mode, uint8_t boardnr, bool fastMode)
 {
 	
 	if(fastMode)
 	{
-		ew_tle9879sys_sendMessageToAll(MODECONTROL + mode);
+		tle9879sys_sendMessageToAll(MODECONTROL + mode);
 		cyhal_system_delay_ms(1000);
 		// for( ; index < end; index++)
 		// {
@@ -67,13 +67,13 @@ void ew_tle9879sys_setMode(ew_tle9879_sys_t *obj, uint8_t mode, uint8_t boardnr,
 		{
 			// boards[index]->modeControl(mode);
 			// processStatusCodes(MODECONTROL, index + 1);
-            ew_tle9879_modeControl(obj->board[boardnr - 1], mode);
+            tle9879_modeControl(obj->board[boardnr - 1], mode);
 		}
 	}
 	
 }
 
-void ew_tle9879sys_setMotorMode(ew_tle9879_sys_t *obj, uint8_t mode, uint8_t boardnr)
+void tle9879sys_setMotorMode(tle9879_sys_t *obj, uint8_t mode, uint8_t boardnr)
 {
 	if (mode > STOP_MOTOR)
 	{
@@ -82,51 +82,51 @@ void ew_tle9879sys_setMotorMode(ew_tle9879_sys_t *obj, uint8_t mode, uint8_t boa
 		return;
 	}
 	
-		ew_tle9879_motorControl(obj->board[boardnr - 1], mode);
+		tle9879_motorControl(obj->board[boardnr - 1], mode);
 		// processStatusCodes(MOTORCONTROL, index + 1);
 	
 }
 
-void ew_tle9879sys_setMotorSpeed(ew_tle9879_sys_t *obj, float motorspeed, uint8_t boardnr)
+void tle9879sys_setMotorSpeed(tle9879_sys_t *obj, float motorspeed, uint8_t boardnr)
 {
-    ew_tle9879_setMotorspeed(obj->board[boardnr - 1], motorspeed);
+    tle9879_setMotorspeed(obj->board[boardnr - 1], motorspeed);
 		// processStatusCodes(SETMOTORSPEED, index + 1);
 	
 }
 
-void ew_tle9879sys_setLed(ew_tle9879_sys_t *obj, uint16_t led, uint16_t mode, uint8_t boardnr)
+void tle9879sys_setLed(tle9879_sys_t *obj, uint16_t led, uint16_t mode, uint8_t boardnr)
 {	
-    if(mode == LED_ON) ew_tle9879_LEDOn(obj->board[boardnr - 1],led);
-    else if(mode == LED_OFF) ew_tle9879_LEDOff(obj->board[boardnr - 1], led);
+    if(mode == LED_ON) tle9879_LEDOn(obj->board[boardnr - 1],led);
+    else if(mode == LED_OFF) tle9879_LEDOff(obj->board[boardnr - 1], led);
     // processStatusCodes(LED, index + 1);
 }
 
-void ew_tle9879sys_setLedColor(ew_tle9879_sys_t *obj, uint8_t color, uint8_t boardnr)
+void tle9879sys_setLedColor(tle9879_sys_t *obj, uint8_t color, uint8_t boardnr)
 {
 	// blue LED
-	if(color & 1) ew_tle9879sys_setLed(obj, LED_BLUE, LED_ON, boardnr);
-	else ew_tle9879sys_setLed(obj, LED_BLUE, LED_OFF, boardnr);
+	if(color & 1) tle9879sys_setLed(obj, LED_BLUE, LED_ON, boardnr);
+	else tle9879sys_setLed(obj, LED_BLUE, LED_OFF, boardnr);
 	
 	// // green LED
-	if(color & 2) ew_tle9879sys_setLed(obj, LED_GREEN, LED_ON, boardnr);
-	else ew_tle9879sys_setLed(obj, LED_GREEN, LED_OFF, boardnr);
+	if(color & 2) tle9879sys_setLed(obj, LED_GREEN, LED_ON, boardnr);
+	else tle9879sys_setLed(obj, LED_GREEN, LED_OFF, boardnr);
 	
 	// // red LED
-	if(color & 4) ew_tle9879sys_setLed(obj, LED_RED, LED_ON, boardnr);
-	else ew_tle9879sys_setLed(obj, LED_RED, LED_OFF, boardnr);
+	if(color & 4) tle9879sys_setLed(obj, LED_RED, LED_ON, boardnr);
+	else tle9879sys_setLed(obj, LED_RED, LED_OFF, boardnr);
 }
 
-void ew_tle9879sys_resetAllBoards()
+void tle9879sys_resetAllBoards()
 {
 	// stop all motors (they may be running)
-	ew_tle9879sys_sendMessageToAll(MOTORCONTROL + STOP_MOTOR);
+	tle9879sys_sendMessageToAll(MOTORCONTROL + STOP_MOTOR);
 	cyhal_system_delay_ms(10);
 	// reset all TLE9879_Boards
-	ew_tle9879sys_sendMessageToAll(BOARDCONTROL + RESET);
+	tle9879sys_sendMessageToAll(BOARDCONTROL + RESET);
 	cyhal_system_delay_ms(1000); // TODO reduce time, let slaves do reset  (note this TODO was in original Arduino code kmwh)
 }
 
-void ew_tle9879sys_init(ew_tle9879_sys_t *obj, cyhal_gpio_t mosi, cyhal_gpio_t miso, cyhal_gpio_t sclk, const cyhal_clock_t *clk, 
+void tle9879sys_init(tle9879_sys_t *obj, cyhal_gpio_t mosi, cyhal_gpio_t miso, cyhal_gpio_t sclk, const cyhal_clock_t *clk, 
                     cyhal_gpio_t ss1, cyhal_gpio_t ss2, cyhal_gpio_t ss3, cyhal_gpio_t ss4, uint8_t* numboards)
 {
 	cy_rslt_t result;
@@ -175,7 +175,7 @@ void ew_tle9879sys_init(ew_tle9879_sys_t *obj, cyhal_gpio_t mosi, cyhal_gpio_t m
     cyhal_system_delay_ms(250);
 
 	// all boards are reset and set to bootloader mode
-	ew_tle9879sys_resetAllBoards();
+	tle9879sys_resetAllBoards();
 	cyhal_system_delay_ms(500);
 	
     uint8_t check_counts = 0;
@@ -183,7 +183,7 @@ void ew_tle9879sys_init(ew_tle9879_sys_t *obj, cyhal_gpio_t mosi, cyhal_gpio_t m
     while(!tle9879_boardA.board_available)
     {
         // DEBUG_PRINTS("Checking board A availability\r\n");
-        ew_tle9879_boardControl(&tle9879_boardA);
+        tle9879_boardControl(&tle9879_boardA);
         cyhal_system_delay_ms(50);
 
         check_counts++;
@@ -193,7 +193,7 @@ void ew_tle9879sys_init(ew_tle9879_sys_t *obj, cyhal_gpio_t mosi, cyhal_gpio_t m
     if(tle9879_boardA.board_available)
     {
         DEBUG_PRINTS("Board A available\r\n");
-        ew_tle9879_LEDOn(&tle9879_boardA, LED_BLUE);
+        tle9879_LEDOn(&tle9879_boardA, LED_BLUE);
         obj->board[obj->board_count] = &tle9879_boardA;
         obj->board_count++;
         tle9879_boardA.boardnr = obj->board_count;
@@ -208,7 +208,7 @@ void ew_tle9879sys_init(ew_tle9879_sys_t *obj, cyhal_gpio_t mosi, cyhal_gpio_t m
     while(!tle9879_boardB.board_available)
     {
         // DEBUG_PRINTS("Checking board B availability\r\n");
-        ew_tle9879_boardControl(&tle9879_boardB);
+        tle9879_boardControl(&tle9879_boardB);
         cyhal_system_delay_ms(50);
 
         check_counts++;
@@ -218,7 +218,7 @@ void ew_tle9879sys_init(ew_tle9879_sys_t *obj, cyhal_gpio_t mosi, cyhal_gpio_t m
     if(tle9879_boardB.board_available)
     {
         DEBUG_PRINTS("Board B available\r\n");
-        ew_tle9879_LEDOn(&tle9879_boardB, LED_BLUE);
+        tle9879_LEDOn(&tle9879_boardB, LED_BLUE);
         obj->board[obj->board_count] = &tle9879_boardB;
         obj->board_count++;
         tle9879_boardB.boardnr = obj->board_count;
@@ -233,7 +233,7 @@ void ew_tle9879sys_init(ew_tle9879_sys_t *obj, cyhal_gpio_t mosi, cyhal_gpio_t m
     while(!tle9879_boardC.board_available)
     {
         // DEBUG_PRINTS("Checking board C availability\r\n");
-        ew_tle9879_boardControl(&tle9879_boardC);
+        tle9879_boardControl(&tle9879_boardC);
         cyhal_system_delay_ms(50);
 
         check_counts++;
@@ -243,7 +243,7 @@ void ew_tle9879sys_init(ew_tle9879_sys_t *obj, cyhal_gpio_t mosi, cyhal_gpio_t m
     if(tle9879_boardC.board_available)
     {
         // DEBUG_PRINTS("Board C available\r\n");
-        ew_tle9879_LEDOn(&tle9879_boardA, LED_BLUE);
+        tle9879_LEDOn(&tle9879_boardA, LED_BLUE);
         obj->board[obj->board_count] = &tle9879_boardC;
         obj->board_count++;
         tle9879_boardC.boardnr = obj->board_count;
@@ -258,7 +258,7 @@ void ew_tle9879sys_init(ew_tle9879_sys_t *obj, cyhal_gpio_t mosi, cyhal_gpio_t m
     while(!tle9879_boardD.board_available)
     {
         // DEBUG_PRINTS("Checking board D availability\r\n");
-        ew_tle9879_boardControl(&tle9879_boardD);
+        tle9879_boardControl(&tle9879_boardD);
         cyhal_system_delay_ms(50);
 
         check_counts++;
@@ -268,7 +268,7 @@ void ew_tle9879sys_init(ew_tle9879_sys_t *obj, cyhal_gpio_t mosi, cyhal_gpio_t m
     if(tle9879_boardD.board_available)
     {
         DEBUG_PRINTS("Board D available\r\n");
-        ew_tle9879_LEDOn(&tle9879_boardD, LED_BLUE);
+        tle9879_LEDOn(&tle9879_boardD, LED_BLUE);
         obj->board[obj->board_count] = &tle9879_boardD;
         obj->board_count++;
         tle9879_boardD.boardnr = obj->board_count;
@@ -284,7 +284,7 @@ void ew_tle9879sys_init(ew_tle9879_sys_t *obj, cyhal_gpio_t mosi, cyhal_gpio_t m
 
 }
 
-void ew_tle9879sys_free(ew_tle9879_sys_t *obj)
+void tle9879sys_free(tle9879_sys_t *obj)
 {
     obj->board_count = 0;
     for(uint8_t index = 0; index < TLE9879_MAX_NUM_BOARDS; index++)
@@ -307,7 +307,7 @@ void ew_tle9879sys_free(ew_tle9879_sys_t *obj)
 
 
 
-// void ew_tle9879sys_processStatusCodes(uint16_t action, uint8_t boardnr)
+// void tle9879sys_processStatusCodes(uint16_t action, uint8_t boardnr)
 // {
 // 	if(status->code == ERR_NONE) return;
 // 	Serial.print(F("WARNING: Board["));
@@ -377,7 +377,7 @@ void ew_tle9879sys_free(ew_tle9879_sys_t *obj)
 // 	status->code = ERR_NONE;
 // }
 
-// void ew_tle9879sys_printAction(uint16_t action)
+// void tle9879sys_printAction(uint16_t action)
 // {
 // 	switch(action)
 // 	{

@@ -1,12 +1,12 @@
 
 #include "cyhal.h"
-#include "ew_tle9879_system.h"
-#include "ew_tle9879_board_driver.h"
+#include "tle9879_system.h"
+#include "tle9879_board_driver.h"
 
 //CRC-8 - based on the CRC8 formulas by Dallas/Maxim
 //code released under the therms of the GNU GPL 3.0 license
 //at http://www.leonardomiliani.com/en/2013/un-semplice-crc8-per-arduino/
-uint8_t ew_tle9879_CRC8(uint8_t *data, uint8_t len)
+uint8_t tle9879_CRC8(uint8_t *data, uint8_t len)
 {
 	uint8_t crc = 0x55;
 	while (len--)
@@ -26,7 +26,7 @@ uint8_t ew_tle9879_CRC8(uint8_t *data, uint8_t len)
 	return crc;
 }
 
-bool ew_tle9879_checkuint16val(uint8_t mode, uint8_t index, uint16_t *data)
+bool tle9879_checkuint16val(uint8_t mode, uint8_t index, uint16_t *data)
 {
 	switch(mode)
 	{
@@ -160,7 +160,7 @@ bool ew_tle9879_checkuint16val(uint8_t mode, uint8_t index, uint16_t *data)
 	return true;
 }
 
-bool ew_tle9879_checkfloatval(uint8_t mode, uint8_t index, float *data)
+bool tle9879_checkfloatval(uint8_t mode, uint8_t index, float *data)
 {
 	switch(mode)
 	{
@@ -290,7 +290,7 @@ bool ew_tle9879_checkfloatval(uint8_t mode, uint8_t index, float *data)
 	return true;
 }
 
-uint8_t ew_tle9879_isvalueinarray(uint8_t val, const uint8_t *indices_16bit_BEMF, const uint8_t size)
+uint8_t tle9879_isvalueinarray(uint8_t val, const uint8_t *indices_16bit_BEMF, const uint8_t size)
 {
     int i;
     for (i=0; i < size; i++)
@@ -307,7 +307,7 @@ uint8_t ew_tle9879_isvalueinarray(uint8_t val, const uint8_t *indices_16bit_BEMF
 
 
 // functions for communication
-void ew_tle9879_sendMessage(ew_tle9879_board_t* obj, uint16_t data)
+void tle9879_sendMessage(tle9879_board_t* obj, uint16_t data)
 {
 
 	uint8_t txdata[2];
@@ -324,7 +324,7 @@ void ew_tle9879_sendMessage(ew_tle9879_board_t* obj, uint16_t data)
    	cyhal_system_delay_us(100);
 }
 
-uint16_t ew_tle9879_readAnswer(ew_tle9879_board_t* obj)
+uint16_t tle9879_readAnswer(tle9879_board_t* obj)
 {
 	uint8_t rxd[2];
 	uint16_t receivedMessage;
@@ -341,11 +341,11 @@ uint16_t ew_tle9879_readAnswer(ew_tle9879_board_t* obj)
 	return receivedMessage;
 }
 
-bool ew_tle9879_sendMessageAndCheckAnswer(ew_tle9879_board_t* obj, uint16_t command)
+bool tle9879_sendMessageAndCheckAnswer(tle9879_board_t* obj, uint16_t command)
 {
-	ew_tle9879_sendMessage(obj, command);
+	tle9879_sendMessage(obj, command);
 	cyhal_system_delay_us(100);
-	uint16_t answer = ew_tle9879_readAnswer(obj);
+	uint16_t answer = tle9879_readAnswer(obj);
 
 	if(answer == (command + CONFIRM_OFFSET)) return true;
 	else
@@ -355,23 +355,23 @@ bool ew_tle9879_sendMessageAndCheckAnswer(ew_tle9879_board_t* obj, uint16_t comm
 	}
 }
 
-bool ew_tle9879_isAvailable(ew_tle9879_board_t* obj)
+bool tle9879_isAvailable(tle9879_board_t* obj)
 {
 	return obj->board_available;
 }
 
 // commands
 // 0x01: modeControl
-bool ew_tle9879_modeControl(ew_tle9879_board_t* obj, uint8_t requestedmode)
+bool tle9879_modeControl(tle9879_board_t* obj, uint8_t requestedmode)
 {	
 	// is the board available
-	if(!ew_tle9879_isAvailable(obj)) return false;
+	if(!tle9879_isAvailable(obj)) return false;
 
 	// get current mode
 	if(requestedmode == GETCURRENTMODE)
 	{
-		ew_tle9879_sendMessage(obj, MODECONTROL + GETCURRENTMODE);
-		uint16_t answer = ew_tle9879_readAnswer(obj);
+		tle9879_sendMessage(obj, MODECONTROL + GETCURRENTMODE);
+		uint16_t answer = tle9879_readAnswer(obj);
 
 		if((answer == 0x1110) || (answer == 0x1111) || (answer == 0x1112) || (answer == 0x1113))
 		{
@@ -398,18 +398,18 @@ bool ew_tle9879_modeControl(ew_tle9879_board_t* obj, uint8_t requestedmode)
 	}
 
 	// send mode change command
-	ew_tle9879_sendMessage(obj, MODECONTROL + requestedmode);
+	tle9879_sendMessage(obj, MODECONTROL + requestedmode);
 	// wait while slave is processing modeControl
 	
 	cyhal_system_delay_ms(1000);
-	uint16_t answer = ew_tle9879_readAnswer(obj);
+	uint16_t answer = tle9879_readAnswer(obj);
 	if(answer != (MODECONTROL + requestedmode + CONFIRM_OFFSET))
 	{		
 		// try to read current mode from TLE9879_Board
 		cyhal_system_delay_ms(1000);
-		ew_tle9879_sendMessage(obj, MODECONTROL + GETCURRENTMODE);
+		tle9879_sendMessage(obj, MODECONTROL + GETCURRENTMODE);
 		cyhal_system_delay_ms(100);
-		uint16_t answer = ew_tle9879_readAnswer(obj);
+		uint16_t answer = tle9879_readAnswer(obj);
 		uint16_t successanswer = MODECONTROL + GETCURRENTMODE + requestedmode + CONFIRM_OFFSET;
 
 		// mode change failed
@@ -428,9 +428,9 @@ bool ew_tle9879_modeControl(ew_tle9879_board_t* obj, uint8_t requestedmode)
 }
 
 // 0x02: loadDataset
-bool ew_tle9879_loadDataset(ew_tle9879_board_t* obj, uint8_t datasetnr)
+bool tle9879_loadDataset(tle9879_board_t* obj, uint8_t datasetnr)
 {
-	if(!ew_tle9879_isAvailable(obj)) return false;
+	if(!tle9879_isAvailable(obj)) return false;
 	if(obj->currentmode == BOOTLOADER)
 	{
 		obj->status.code = ERR_STILL_IN_BOOTLOADER;
@@ -442,7 +442,7 @@ bool ew_tle9879_loadDataset(ew_tle9879_board_t* obj, uint8_t datasetnr)
 		obj->status.additionalInfo[0] = datasetnr;
 		return false;
 	}
-	bool success = ew_tle9879_sendMessageAndCheckAnswer(obj, LOADDATASET + datasetnr);
+	bool success = tle9879_sendMessageAndCheckAnswer(obj, LOADDATASET + datasetnr);
 	if(!success)
 	{
 		obj->status.code = ERR_FAILED;
@@ -453,12 +453,12 @@ bool ew_tle9879_loadDataset(ew_tle9879_board_t* obj, uint8_t datasetnr)
 }
 
 // 0x03: readDataset
-uint8_t ew_tle9879_readDataset(ew_tle9879_board_t* obj)
+uint8_t tle9879_readDataset(tle9879_board_t* obj)
 {
-	if(!ew_tle9879_isAvailable(obj)) return 0;
+	if(!tle9879_isAvailable(obj)) return 0;
 
 	// find out mode to decide which dataset needs to be read
-	bool success = ew_tle9879_modeControl(obj, GETCURRENTMODE);
+	bool success = tle9879_modeControl(obj, GETCURRENTMODE);
 	if(!success)
 	{
 		obj->status.code = ERR_MODE_READING_FAILED;
@@ -476,46 +476,46 @@ uint8_t ew_tle9879_readDataset(ew_tle9879_board_t* obj)
 			return 0;
 
 		case BEMF:			
-			ew_tle9879_sendMessage(obj, READDATASET);
-			nrofmessages = ew_tle9879_readAnswer(obj);
+			tle9879_sendMessage(obj, READDATASET);
+			nrofmessages = tle9879_readAnswer(obj);
 
 			for(uint8_t i = 0; i < nrofmessages; i++)
 			{
-				obj->data_BEMF.dataarray_BEMF[i] = ew_tle9879_readAnswer(obj);
+				obj->data_BEMF.dataarray_BEMF[i] = tle9879_readAnswer(obj);
 			}
 
 			uint8ptr = (uint8_t*) &(obj->data_BEMF);
-			calcCRC = ew_tle9879_CRC8(uint8ptr, NUMBEROF_BYTES_BEMF);
-			recvCRC = (uint8_t)ew_tle9879_readAnswer(obj);
+			calcCRC = tle9879_CRC8(uint8ptr, NUMBEROF_BYTES_BEMF);
+			recvCRC = (uint8_t)tle9879_readAnswer(obj);
 			break;
 
 		case HALL:
-			ew_tle9879_sendMessage(obj, READDATASET);
-			nrofmessages = ew_tle9879_readAnswer(obj);
+			tle9879_sendMessage(obj, READDATASET);
+			nrofmessages = tle9879_readAnswer(obj);
 
 			for(uint8_t i = 0; i < nrofmessages; i++)
 			{
-				obj->data_HALL.dataarray_HALL[i] = ew_tle9879_readAnswer(obj);
+				obj->data_HALL.dataarray_HALL[i] = tle9879_readAnswer(obj);
 			}
 
 			uint8ptr = (uint8_t*) &(obj->data_HALL);
-			calcCRC = ew_tle9879_CRC8(uint8ptr, NUMBEROF_BYTES_HALL);
-			recvCRC = (uint8_t)ew_tle9879_readAnswer(obj);
+			calcCRC = tle9879_CRC8(uint8ptr, NUMBEROF_BYTES_HALL);
+			recvCRC = (uint8_t)tle9879_readAnswer(obj);
 			break;
 
 		case FOC:
-			ew_tle9879_sendMessage(obj, READDATASET);
-			nrofmessages = ew_tle9879_readAnswer(obj);
-			ew_tle9879_readAnswer(obj);
+			tle9879_sendMessage(obj, READDATASET);
+			nrofmessages = tle9879_readAnswer(obj);
+			tle9879_readAnswer(obj);
 
 			for(uint8_t i = 0; i < nrofmessages; i++)
 			{
-				obj->data_FOC.dataarray_FOC[i] = ew_tle9879_readAnswer(obj);
+				obj->data_FOC.dataarray_FOC[i] = tle9879_readAnswer(obj);
 			}
 
 			uint8ptr = (uint8_t*) &(obj->data_FOC);
-			calcCRC = ew_tle9879_CRC8(uint8ptr, NUMBEROF_BYTES_FOC);
-			recvCRC = (uint8_t) ew_tle9879_readAnswer(obj);
+			calcCRC = tle9879_CRC8(uint8ptr, NUMBEROF_BYTES_FOC);
+			recvCRC = (uint8_t) tle9879_readAnswer(obj);
 			break;
 			
 		default:
@@ -533,15 +533,15 @@ uint8_t ew_tle9879_readDataset(ew_tle9879_board_t* obj)
 }
 
 // 0x04: writeDataset
-bool ew_tle9879_writeDataset(ew_tle9879_board_t* obj)
+bool tle9879_writeDataset(tle9879_board_t* obj)
 {
 	uint8_t nrofmessages = 0;
 	uint8_t calcCRC = 0;
 	uint8_t *uint8ptr;
 
-	if(!ew_tle9879_isAvailable(obj)) return false;
+	if(!tle9879_isAvailable(obj)) return false;
 
-	bool success = ew_tle9879_modeControl(obj, GETCURRENTMODE);
+	bool success = tle9879_modeControl(obj, GETCURRENTMODE);
 	if(!success)
 	{
 		obj->status.code = ERR_MODE_READING_FAILED;
@@ -558,40 +558,40 @@ bool ew_tle9879_writeDataset(ew_tle9879_board_t* obj)
 		case BEMF:
 			nrofmessages = NUMBEROF_MESSAGES_BEMF;
 			uint8ptr = (uint8_t*) &(obj->data_BEMF.dataarray_BEMF);
-			calcCRC = ew_tle9879_CRC8(uint8ptr, NUMBEROF_BYTES_BEMF);
-			ew_tle9879_sendMessage(obj, WRITEDATASET + nrofmessages);
+			calcCRC = tle9879_CRC8(uint8ptr, NUMBEROF_BYTES_BEMF);
+			tle9879_sendMessage(obj, WRITEDATASET + nrofmessages);
 			for(int i = 0; i < nrofmessages; i++) 
 			{
-				ew_tle9879_sendMessage(obj, obj->data_BEMF.dataarray_BEMF[i]);
+				tle9879_sendMessage(obj, obj->data_BEMF.dataarray_BEMF[i]);
 			}
 			break;
 			
 		case HALL:
 			nrofmessages = NUMBEROF_MESSAGES_HALL;
 			uint8ptr = (uint8_t*) &(obj->data_HALL.dataarray_HALL);
-			calcCRC = ew_tle9879_CRC8(uint8ptr, NUMBEROF_BYTES_HALL);
-			ew_tle9879_sendMessage(obj, WRITEDATASET + nrofmessages);
+			calcCRC = tle9879_CRC8(uint8ptr, NUMBEROF_BYTES_HALL);
+			tle9879_sendMessage(obj, WRITEDATASET + nrofmessages);
 			for(int i = 0; i < nrofmessages; i++)
 			{
-				ew_tle9879_sendMessage(obj, obj->data_HALL.dataarray_HALL[i]);
+				tle9879_sendMessage(obj, obj->data_HALL.dataarray_HALL[i]);
 			}
 			break;
 
 		case FOC:
 			nrofmessages = NUMBEROF_MESSAGES_FOC;
 			uint8ptr = (uint8_t*) &(obj->data_FOC.dataarray_FOC);
-			calcCRC = ew_tle9879_CRC8(uint8ptr, NUMBEROF_BYTES_FOC);
-			ew_tle9879_sendMessage(obj, WRITEDATASET + nrofmessages);
+			calcCRC = tle9879_CRC8(uint8ptr, NUMBEROF_BYTES_FOC);
+			tle9879_sendMessage(obj, WRITEDATASET + nrofmessages);
 			for(int i = 0; i < nrofmessages; i++)
 			{
-				ew_tle9879_sendMessage(obj, obj->data_FOC.dataarray_FOC[i]);
+				tle9879_sendMessage(obj, obj->data_FOC.dataarray_FOC[i]);
 			}
 			break;
 	}
 
-	ew_tle9879_sendMessage(obj, calcCRC);
+	tle9879_sendMessage(obj, calcCRC);
 	cyhal_system_delay_ms(10);
-	uint16_t finalmessage = ew_tle9879_readAnswer(obj);
+	uint16_t finalmessage = tle9879_readAnswer(obj);
 
 	if(finalmessage != (WRITEDATASET + nrofmessages + CONFIRM_OFFSET))
 	{
@@ -604,13 +604,13 @@ bool ew_tle9879_writeDataset(ew_tle9879_board_t* obj)
 }
 
 // 0x05: changeParameter
-bool ew_tle9879_changeParameter(ew_tle9879_board_t*obj, uint8_t index, float data)
+bool tle9879_changeParameter(tle9879_board_t*obj, uint8_t index, float data)
 {
-	if(!ew_tle9879_isAvailable(obj)) return false;
+	if(!tle9879_isAvailable(obj)) return false;
 
 	bool datacheckOK = false;
 	bool dataIsUint16 = false;
-	bool success = ew_tle9879_modeControl(obj, GETCURRENTMODE);
+	bool success = tle9879_modeControl(obj, GETCURRENTMODE);
 	if(!success)
 	{
 		obj->status.code = ERR_MODE_READING_FAILED;
@@ -661,7 +661,7 @@ bool ew_tle9879_changeParameter(ew_tle9879_board_t*obj, uint8_t index, float dat
 				return false;
 			}
 			index -= HALLOFFSET;
-			// dataIsUint16 = ew_tle9879_isvalueinarray(index, indices_16bit_HALL, indices_16bit_HALL_size);
+			// dataIsUint16 = tle9879_isvalueinarray(index, indices_16bit_HALL, indices_16bit_HALL_size);
 			break;
 			
 		case FOC:
@@ -674,35 +674,35 @@ bool ew_tle9879_changeParameter(ew_tle9879_board_t*obj, uint8_t index, float dat
 				return false;
 			}
 			index -= FOCOFFSET;
-			// dataIsUint16 = ew_tle9879_isvalueinarray(index, indices_16bit_FOC, indices_16bit_FOC_size);
+			// dataIsUint16 = tle9879_isvalueinarray(index, indices_16bit_FOC, indices_16bit_FOC_size);
 			break;
 	}
 
 	if (dataIsUint16) // 16bit variable
 	{
 		uint16_t uint16val = (uint16_t)(data);
-		datacheckOK = ew_tle9879_checkuint16val(obj->currentmode, index, &uint16val);
+		datacheckOK = tle9879_checkuint16val(obj->currentmode, index, &uint16val);
 		if(datacheckOK)
 		{
-			ew_tle9879_sendMessage(obj, CHANGEPARAMETER + index);
-			ew_tle9879_sendMessage(obj, (uint16_t)uint16val);
+			tle9879_sendMessage(obj, CHANGEPARAMETER + index);
+			tle9879_sendMessage(obj, (uint16_t)uint16val);
 		}
 		else return false;
 	}
 	else
 	{
 		uint32_t *uint32ptr = (uint32_t*) &data;
-		datacheckOK = ew_tle9879_checkfloatval(obj->currentmode, index, &data);
+		datacheckOK = tle9879_checkfloatval(obj->currentmode, index, &data);
 		if(datacheckOK)
 		{
-			ew_tle9879_sendMessage(obj, CHANGEPARAMETER + index);
-			ew_tle9879_sendMessage(obj, (uint16_t)((*uint32ptr)>>16));
-			ew_tle9879_sendMessage(obj, (uint16_t)(*uint32ptr));
+			tle9879_sendMessage(obj, CHANGEPARAMETER + index);
+			tle9879_sendMessage(obj, (uint16_t)((*uint32ptr)>>16));
+			tle9879_sendMessage(obj, (uint16_t)(*uint32ptr));
 		}
 		else return false;
 	}
 
-	uint16_t answer = ew_tle9879_readAnswer(obj);
+	uint16_t answer = tle9879_readAnswer(obj);
 	if(answer != CHANGEPARAMETER + index + CONFIRM_OFFSET)
 	{
 		obj->status.code = ERR_FAILED;
@@ -712,9 +712,9 @@ bool ew_tle9879_changeParameter(ew_tle9879_board_t*obj, uint8_t index, float dat
 }
 
 // 0x06: saveDataset
-bool ew_tle9879_saveDataset(ew_tle9879_board_t* obj, uint8_t position)
+bool tle9879_saveDataset(tle9879_board_t* obj, uint8_t position)
 {
-	if(!ew_tle9879_isAvailable(obj)) return false;
+	if(!tle9879_isAvailable(obj)) return false;
 
 	if(obj->currentmode == BOOTLOADER)
 	{
@@ -729,9 +729,9 @@ bool ew_tle9879_saveDataset(ew_tle9879_board_t* obj, uint8_t position)
 		return false;
 	}
 
-	ew_tle9879_sendMessage(obj, SAVEDATASET + position);
+	tle9879_sendMessage(obj, SAVEDATASET + position);
 	cyhal_system_delay_ms(10);
-	uint16_t answer = ew_tle9879_readAnswer(obj);
+	uint16_t answer = tle9879_readAnswer(obj);
 
 	if(answer != SAVEDATASET + position + CONFIRM_OFFSET)
 	{
@@ -744,18 +744,18 @@ bool ew_tle9879_saveDataset(ew_tle9879_board_t* obj, uint8_t position)
 }
 
 // 0x07: setMotorspeed
-bool ew_tle9879_setMotorspeed(ew_tle9879_board_t* obj, float motorspeed)
+bool tle9879_setMotorspeed(tle9879_board_t* obj, float motorspeed)
 {
-	if(!ew_tle9879_isAvailable(obj)) return false;
+	if(!tle9879_isAvailable(obj)) return false;
 	if(obj->currentmode == BOOTLOADER)
 	{
 		obj->status.code = ERR_STILL_IN_BOOTLOADER;
 		return false;
 	}
 
-	ew_tle9879_sendMessage(obj, SETMOTORSPEED);
-	ew_tle9879_sendMessage(obj, (int16_t)motorspeed);
-	uint16_t answer = ew_tle9879_readAnswer(obj);
+	tle9879_sendMessage(obj, SETMOTORSPEED);
+	tle9879_sendMessage(obj, (int16_t)motorspeed);
+	uint16_t answer = tle9879_readAnswer(obj);
 
 	if(answer != SETMOTORSPEED +CONFIRM_OFFSET)
 	{
@@ -767,9 +767,9 @@ bool ew_tle9879_setMotorspeed(ew_tle9879_board_t* obj, float motorspeed)
 }
 
 // 0x08: motorControl-
-bool ew_tle9879_motorControl(ew_tle9879_board_t* obj, uint8_t command)
+bool tle9879_motorControl(tle9879_board_t* obj, uint8_t command)
 {
-	if(!ew_tle9879_isAvailable(obj)) return false;
+	if(!tle9879_isAvailable(obj)) return false;
 	if(obj->currentmode == BOOTLOADER)
 	{
 		obj->status.code = ERR_STILL_IN_BOOTLOADER;
@@ -781,7 +781,7 @@ bool ew_tle9879_motorControl(ew_tle9879_board_t* obj, uint8_t command)
 		obj->status.additionalInfo[0] = command;
 		return false;
 	}
-	bool success = ew_tle9879_sendMessageAndCheckAnswer(obj, MOTORCONTROL + command);
+	bool success = tle9879_sendMessageAndCheckAnswer(obj, MOTORCONTROL + command);
 	if(!success)
 	{
 		obj->status.code = ERR_FAILED;
@@ -791,18 +791,18 @@ bool ew_tle9879_motorControl(ew_tle9879_board_t* obj, uint8_t command)
 }
 
 // 0x09: boardControl
-bool ew_tle9879_boardControl(ew_tle9879_board_t* obj)
+bool tle9879_boardControl(tle9879_board_t* obj)
 {	
 	// board available?
-	bool success = ew_tle9879_sendMessageAndCheckAnswer(obj, BOARDCONTROL + BOARD_AVAILABLE);
+	bool success = tle9879_sendMessageAndCheckAnswer(obj, BOARDCONTROL + BOARD_AVAILABLE);
 	obj->board_available = success;
 	return success;
 }
 
 // 0x0A: LEDOn
-bool ew_tle9879_LEDOn(ew_tle9879_board_t* obj, uint8_t led)
+bool tle9879_LEDOn(tle9879_board_t* obj, uint8_t led)
 {
-	if(!ew_tle9879_isAvailable(obj))
+	if(!tle9879_isAvailable(obj))
 		return false;
 
 	if((led != LED_RED) && (led != LED_GREEN) && (led != LED_BLUE))
@@ -810,14 +810,14 @@ bool ew_tle9879_LEDOn(ew_tle9879_board_t* obj, uint8_t led)
 		DEBUG_PRINTS("Requested LED was not valid. Valid LEDs are: LED_RED, LED_GREEN, LED_BLUE\r\n");
 		return false;
 	}
-	bool success = ew_tle9879_sendMessageAndCheckAnswer(obj, LED_ON + led);	
+	bool success = tle9879_sendMessageAndCheckAnswer(obj, LED_ON + led);	
 	return success;
 }
 
 // 0x0B: LEDOff
-bool ew_tle9879_LEDOff(ew_tle9879_board_t* obj, uint8_t led)
+bool tle9879_LEDOff(tle9879_board_t* obj, uint8_t led)
 {
-	if(!ew_tle9879_isAvailable(obj))
+	if(!tle9879_isAvailable(obj))
 		return false;
 
 	if((led != LED_RED) && (led != LED_GREEN) && (led != LED_BLUE))
@@ -825,17 +825,17 @@ bool ew_tle9879_LEDOff(ew_tle9879_board_t* obj, uint8_t led)
 		DEBUG_PRINTS("Requested LED was not valid. Valid LEDs are: LED_RED, LED_GREEN, LED_BLUE\r\n");
 		return false;
 	}
-	bool success = ew_tle9879_sendMessageAndCheckAnswer(obj, LED_OFF + led);
+	bool success = tle9879_sendMessageAndCheckAnswer(obj, LED_OFF + led);
 	return success;
 }
 
-int16_t ew_tle9879_getMotorspeed(ew_tle9879_board_t* obj)
+int16_t tle9879_getMotorspeed(tle9879_board_t* obj)
 {
 	return obj->motorspeed;
 }
 
 /*
-bool ew_tle9879_reset() // TODO add status messages
+bool tle9879_reset() // TODO add status messages
 {
 	motorControl(STOP_MOTOR);
 	sendMessage(BOARDCONTROL + RESET);
@@ -843,7 +843,7 @@ bool ew_tle9879_reset() // TODO add status messages
 }
 */
 
-uint8_t ew_tle9879_getCurrentMode(ew_tle9879_board_t* obj)
+uint8_t tle9879_getCurrentMode(tle9879_board_t* obj)
 {
 	return obj->currentmode;
 }
